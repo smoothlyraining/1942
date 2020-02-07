@@ -1,0 +1,248 @@
+<html>
+<head>
+	<title>1942 Game</title>
+
+<style type="text/css">
+	body{
+		background-color:black;
+	}
+	#container{
+		background: url('galaxy.gif');
+		width:1000px;
+		height:550px;
+	}
+	#hero{
+		background: url('1942.gif');
+		background-position: -85px -180px;
+		width:28px;
+		height:28px;
+		position:absolute;
+	}
+	.enemy1{
+		background: url('1942.gif');
+		background-position: -30px -10px;
+		width:28px;
+		height:28px;
+		position:absolute;
+	}
+	.enemy2{
+		background: url('1942.gif');
+		background-position: -86px -86px;
+		width:20px;
+		height:25px;
+		position:absolute;
+	}
+	.bullet{
+		background: url('1942.gif');
+		background-position: -185px -400px;
+		width:18px;
+		height:18px;
+		position:absolute;
+	}
+	#score{
+		width:80px;
+		position:absolute;
+		border:10px solid #CC7D70;
+		top:20px;
+		left:800px;
+		background-color:#E6FFA6;
+		padding:10px;
+		font-size:30px;
+		font-family: Arial;	
+	}
+	#audio,#audio1,#audio2,#audio3{
+		display: none
+	}
+</style>
+</head>
+<body>
+	<div id='container'>
+		<div id='hero'></div>
+		<div id='enemies'></div>
+		<div id='enemies2'></div>
+		<div id='bullets'></div>	
+	</div>
+
+	<div id='score'>0</div>
+
+	<audio id="audio" controls>
+		<source type="audio/wav" src="explosion.wav">
+	</audio>
+	<audio id="audio1" controls>
+		<source type="audio/wav" src="bala.wav">
+	</audio>
+	<audio id="audio2" controls>
+		<source type="audio/wav" src="balaimpacto.wav">
+	</audio>
+
+
+<script>
+	var score=0
+
+	var hero = {
+		x: 500,
+		y: 500
+	}
+
+	var enemies = [{x:50, y:50},{x:250, y:50},{x:450, y:50},{x:600, y:50},{x:700,y:50}];
+	var enemies2= [{x:100, y:150},{x:350, y:150},{x:550, y:150},{x:650, y:150},{x:750,y:150}];
+
+	var bullets = []
+
+	if(hero.y>540){
+		hero.y=0;
+		enemies[i].x=Math.random()*850+1;
+	}
+
+	function displayHero(){
+		document.getElementById('hero').style.top= hero.y + "px";
+		document.getElementById('hero').style.left= hero.x + "px";
+	}
+
+	function displayEnemies(){
+		var output='';
+		for(i=0; i<enemies.length; i++){
+			output+="<div class='enemy1' style='top:"+enemies[i].y+"px; left:"+enemies[i].x+"px;'></div>"
+		}
+		document.getElementById('enemies').innerHTML=output;
+		//console.log(output)
+	}
+
+	function displayEnemies2(){
+		var output='';
+		for(i=0; i<enemies2.length; i++){
+			output+="<div class='enemy2' style='top:"+enemies2[i].y+"px; left:"+enemies2[i].x+"px;'></div>"
+		}
+		document.getElementById('enemies2').innerHTML=output;
+		//console.log(output)
+	}
+
+	function moveEnemies(){
+		for(i=0; i<enemies.length;i++){
+			enemies[i].y+=5;
+			if(enemies[i].y>540){
+				enemies[i].y=0;
+				enemies[i].x=Math.random()*850+1;
+			}
+		}
+	}
+
+	function moveEnemies2(){
+		for(i=0; i<enemies2.length;i++){
+			enemies2[i].y+=5;
+			if(enemies2[i].y>540){
+				enemies2[i].y=0;
+				enemies2[i].x=Math.random()*850+1;
+			}
+		}
+	}
+
+	function moveBullets(){
+		for(i=0; i<bullets.length;i++){
+			bullets[i].y-=5;
+			if(bullets[i].y<0){
+				bullets[i]=bullets[bullets.length-1]
+				bullets.pop();
+			}
+		}
+	}
+
+	function displayBullets(){
+		var output = '';
+		for(i=0; i<bullets.length;i++){
+			output+="<div class='bullet' style='top:"+bullets[i].y+"px; left:"+bullets[i].x+"px;'></div>"
+		}
+		document.getElementById('bullets').innerHTML=output;
+	}
+
+	function gameLoop(){
+		displayHero();
+		moveEnemies();
+		moveEnemies2();
+		displayEnemies();
+		displayEnemies2();
+		moveBullets();
+		displayBullets();
+		detectCollision();
+		detectCollisionWithEnemy();
+	}
+
+	function detectCollision(){
+		for(i=0; i<bullets.length;i++){
+			for(var j=0; j<enemies.length;j++){
+				if(Math.abs(bullets[i].x - enemies[j].x)<15 && Math.abs(bullets[i].y - enemies[j].y)<10){
+					score += 10 // i: bala, j: avión
+					document.getElementById('score').innerHTML=score;
+					enemies[j].x=Math.random()*850+1;
+					enemies[j].y=0
+					var audio = document.getElementById("audio2");
+					audio.play();
+				}
+			}
+			for(var z=0; z<enemies2.length;z++){
+				if(Math.abs(bullets[i].x - enemies2[z].x)<15 && Math.abs(bullets[i].y - enemies2[z].y)<10){
+					score += 10 // i: bala, z: avión
+					document.getElementById('score').innerHTML=score;
+					enemies2[z].x=Math.random()*850+1;
+					enemies2[z].y=0
+					var audio = document.getElementById("audio2");
+					audio.play();
+				}
+			}
+		}
+	}
+
+	function detectCollisionWithEnemy(){
+			for(var j=0; j<enemies.length;j++){
+				if(Math.abs(hero.x - enemies[j].x)<15 && Math.abs(hero.y - enemies[j].y)<10){
+					score -= 500 // i: bala, j: avión
+					document.getElementById('score').innerHTML=score;
+					hero.x=500;
+					hero.y=500;
+					var audio = document.getElementById("audio");
+					audio.play();
+				}
+			}
+			for(var i=0; i<enemies2.length;i++){
+				if(Math.abs(hero.x - enemies2[i].x)<15 && Math.abs(hero.y - enemies2[i].y)<10){
+					score -= 500 // i: bala, j: avión
+					document.getElementById('score').innerHTML=score;
+					hero.x=500;
+					hero.y=500;
+					var audio = document.getElementById("audio");
+					audio.play();
+				}
+			}
+	}
+
+	setInterval(gameLoop,30);
+
+	document.onkeydown = function(a){
+		if(a.keyCode==37 && hero.x>10){
+			hero.x-=10
+		}
+		else if(a.keyCode==39 && hero.x<=970){
+			hero.x+=10
+		}
+		else if(a.keyCode==38 && hero.y>10){
+			hero.y-=10
+		}
+		else if(a.keyCode==40 && hero.y<530){
+			hero.y+=10
+		}
+		else if(a.keyCode==32){
+			var audio = document.getElementById("audio1");
+			audio.play();
+			bullets.push({x: hero.x+5, y: hero.y-15})
+			displayBullets();
+		}
+		displayHero();
+	}
+
+	displayHero();
+	displayEnemies();
+
+</script>
+
+</body>
+</html>
